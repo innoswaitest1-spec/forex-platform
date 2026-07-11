@@ -1,0 +1,9 @@
+{
+  "appId": "com.innoswaifx.platform",
+  "appName": "InnoswaiFX",
+  "webDir": "public",
+  "server": {
+    "url": "https://YOUR_LIVE_URL.vercel.app",
+    "cleartext": false
+  }
+}
