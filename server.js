@@ -10,7 +10,7 @@ app.use(express.json());
 app.use(express.static('public'));
 
 // ---------- CONFIG ----------
-const API_KEY = 'YOUR_TWELVE_DATA_API_KEY'; // <- replace with your free key
+const API_KEY = 'aa04a31f26164d5b8f9aaad02c75da4d'; // <- replace with your free key
 const ADMIN_PASSWORD = 'innoswa2024!'; // change this
 
 // ---------- LIVE PRICE ----------
