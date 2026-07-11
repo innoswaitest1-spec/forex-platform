@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1.0"><title>Admin - InnoswaiFX</title>
+<style> body { background:#111; color:white; font-family:Arial; padding:20px; } input, button { padding:10px; margin:5px; width:100%; } </style>
+</head>
+<body>
+  <h2>Admin Login</h2>
+  <input id="user" placeholder="Username" value="admin"><br>
+  <input id="pass" type="password" placeholder="Password"><br>
+  <button onclick="login()">Login</button>
+  <div id="panel" style="display:none;">
+    <h3>Admin Dashboard</h3>
+    <p>Manage users, view P&L, mass mail (coming soon)</p>
+    <button onclick="logout()">Logout</button>
+  </div>
+<script>
+  async function login() {
+    const res = await fetch('/api/admin/login', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ username: document.getElementById('user').value, password: document.getElementById('pass').value })
+    });
+    if (res.ok) {
+      localStorage.setItem('adminToken', (await res.json()).token);
+      document.getElementById('panel').style.display='block';
+    } else alert('Wrong credentials');
+  }
+  function logout() { localStorage.removeItem('adminToken'); location.reload(); }
+</script>
+</body>
+</html>
