@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>InnoswaiFX Platform</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    body { margin: 0; font-family: Arial; background: #0a0a1a; color: white; }
+    .header { padding: 15px; background: #111; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-weight: bold; color: gold; }
+    .price-ticker { background: #1a1a2e; padding: 10px; text-align: center; font-size: 18px; }
+    .buttons { display: flex; gap: 10px; margin: 15px; }
+    .btn { flex:1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    .buy { background: #00c853; color: white; }
+    .sell { background: #ff1744; color: white; }
+    .analysis-box { background: #1e1e3a; margin: 15px; padding: 15px; border-radius: 10px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <span class="logo">INNOSWAIFX</span>
+    <a href="/admin.html" style="color:white; text-decoration:none;">🔑 Admin</a>
+  </div>
+  <div class="price-ticker" id="livePrice">EUR/USD: --</div>
+  <div style="width:95%; margin:auto; background:#131722; border-radius:10px; padding:5px;">
+    <canvas id="priceChart" height="250"></canvas>
+  </div>
+  <div class="buttons">
+    <button class="btn buy" onclick="trade('buy')">BUY</button>
+    <button class="btn sell" onclick="trade('sell')">SELL</button>
+  </div>
+  <div class="analysis-box" id="nyAnalysis">Loading analysis...</div>
+
+  <script>
+    const symbol = 'EUR/USD';
+    const priceEl = document.getElementById('livePrice');
+    const analysisEl = document.getElementById('nyAnalysis');
+    let chart;
+
+    // Chart setup
+    const ctx = document.getElementById('priceChart').getContext('2d');
+    chart = new Chart(ctx, {
+      type: 'line',
+      data: { labels: [], datasets: [{ label: symbol, borderColor: '#00bcd4', data: [] }] },
+      options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: false } } }
+    });
+
+    async function fetchPrice() {
+      try {
+        const res = await fetch('/api/price/' + symbol);
+        const data = await res.json();
+        if (data.price) {
+          priceEl.innerHTML = `${symbol}: ${parseFloat(data.price).toFixed(5)}`;
+          // update chart
+          chart.data.labels.push(new Date().toLocaleTimeString());
+          chart.data.datasets[0].data.push(parseFloat(data.price));
+          if (chart.data.labels.length > 30) {
+            chart.data.labels.shift();
+            chart.data.datasets[0].data.shift();
+          }
+          chart.update();
+        }
+      } catch(e) {}
+    }
+
+    async function fetchAnalysis() {
+      try {
+        const res = await fetch('/api/analysis/ny-close/' + symbol);
+        const a = await res.json();
+        analysisEl.innerHTML = `
+          <strong>NY Close Analysis (Yesterday):</strong><br>
+          High: ${a.ny_close_high} / Low: ${a.ny_close_low}<br>
+          Current: ${a.current_price}<br>
+          Status: ${a.status}<br>
+          <span style="color:gold;">Suggested Strategy: ${a.suggested_strategy}</span>
+        `;
+      } catch(e) {}
+    }
+
+    function trade(action) {
+      fetch('/api/trade/execute', {
+        method:'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ symbol, volume:0.1, action })
+      }).then(r => r.json()).then(d => alert('Trade sent (simulation): ' + d.orderId));
+    }
+
+    setInterval(fetchPrice, 3000);
+    setInterval(fetchAnalysis, 10000);
+    fetchPrice();
+    fetchAnalysis();
+  </script>
+</body>
+  </html>
